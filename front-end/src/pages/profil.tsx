@@ -1,11 +1,12 @@
-import { Activity, EmptyData, PageTitle } from "@/components";
+import { DraggableActivityList, PageTitle } from "@/components";
 import { withAuth } from "@/hocs";
 import { useAuth } from "@/hooks";
 import { GetUserQuery, GetUserQueryVariables } from "@/graphql/generated/types";
 import GetUser from "@/graphql/queries/auth/getUser";
 import { useQuery } from "@apollo/client";
-import { Avatar, Flex, Grid, Text, Title } from "@mantine/core";
+import { Avatar, Flex, Text, Title } from "@mantine/core";
 import Head from "next/head";
+import { useMemo } from "react";
 
 const Profile = () => {
   const { user: authUser } = useAuth();
@@ -19,7 +20,10 @@ const Profile = () => {
   );
 
   const user = userData?.getMe;
-  const favoriteActivities = user?.favoriteActivities || [];
+  const favoriteActivities = useMemo(
+    () => user?.favoriteActivities || [],
+    [user?.favoriteActivities]
+  );
 
   return (
     <>
@@ -39,15 +43,7 @@ const Profile = () => {
         </Flex>
       </Flex>
       <Title order={3} mb="md">Mes activités favorites</Title>
-      {favoriteActivities.length > 0 ? (
-        <Grid>
-          {favoriteActivities.map((activity) => (
-            <Activity activity={activity} key={activity.id} />
-          ))}
-        </Grid>
-      ) : (
-        <EmptyData />
-      )}
+      <DraggableActivityList activities={favoriteActivities} />
     </>
   );
 };

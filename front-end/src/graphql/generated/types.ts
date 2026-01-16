@@ -41,7 +41,8 @@ export type Mutation = {
   login: SignInDto;
   logout: Scalars['Boolean']['output'];
   register: User;
-  toggleFavoriteActivity: User;
+  toggleFavoriteActivity: Scalars['Boolean']['output'];
+  updateFavoriteActivitiesOrder: Scalars['Boolean']['output'];
 };
 
 
@@ -62,6 +63,11 @@ export type MutationRegisterArgs = {
 
 export type MutationToggleFavoriteActivityArgs = {
   activityId: Scalars['ID']['input'];
+};
+
+
+export type MutationUpdateFavoriteActivitiesOrderArgs = {
+  activityIds: Array<Scalars['ID']['input']>;
 };
 
 export type Query = {
@@ -149,7 +155,14 @@ export type ToggleFavoriteActivityMutationVariables = Exact<{
 }>;
 
 
-export type ToggleFavoriteActivityMutation = { __typename?: 'Mutation', toggleFavoriteActivity: { __typename?: 'User', id: string, favoriteActivities?: Array<{ __typename?: 'Activity', id: string }> | null } };
+export type ToggleFavoriteActivityMutation = { __typename?: 'Mutation', toggleFavoriteActivity: boolean };
+
+export type UpdateFavoriteActivitiesOrderMutationVariables = Exact<{
+  activityIds: Array<Scalars['ID']['input']> | Scalars['ID']['input'];
+}>;
+
+
+export type UpdateFavoriteActivitiesOrderMutation = { __typename?: 'Mutation', updateFavoriteActivitiesOrder: boolean };
 
 export type GetActivitiesQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -315,7 +328,8 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   login?: Resolver<ResolversTypes['SignInDto'], ParentType, ContextType, RequireFields<MutationLoginArgs, 'signInInput'>>;
   logout?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   register?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<MutationRegisterArgs, 'signUpInput'>>;
-  toggleFavoriteActivity?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<MutationToggleFavoriteActivityArgs, 'activityId'>>;
+  toggleFavoriteActivity?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationToggleFavoriteActivityArgs, 'activityId'>>;
+  updateFavoriteActivitiesOrder?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationUpdateFavoriteActivitiesOrderArgs, 'activityIds'>>;
 };
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {

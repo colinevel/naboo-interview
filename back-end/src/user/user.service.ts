@@ -81,7 +81,7 @@ export class UserService {
   private async addFavoriteActivity(
     userId: string,
     activityId: string,
-  ): Promise<User> {
+  ): Promise<void> {
     const user = await this.userModel.findById(userId).exec();
     if (!user) {
       throw new NotFoundException('User not found');
@@ -89,7 +89,7 @@ export class UserService {
 
     // Check if activity is already favorited
     if (user.favoriteActivities?.some((fav) => fav.toString() === activityId)) {
-      return user;
+      return;
     }
 
     // Add activity to favorites
@@ -98,14 +98,12 @@ export class UserService {
       activityId as any,
     ];
     await user.save();
-
-    return this.getById(userId);
   }
 
   private async removeFavoriteActivity(
     userId: string,
     activityId: string,
-  ): Promise<User> {
+  ): Promise<void> {
     const user = await this.userModel.findById(userId).exec();
     if (!user) {
       throw new NotFoundException('User not found');
@@ -116,14 +114,12 @@ export class UserService {
       user.favoriteActivities?.filter((fav) => fav.toString() !== activityId) ||
       [];
     await user.save();
-
-    return this.getById(userId);
   }
 
   async toggleFavoriteActivity(
     userId: string,
     activityId: string,
-  ): Promise<User> {
+  ): Promise<void> {
     const user = await this.userModel.findById(userId).exec();
     if (!user) {
       throw new NotFoundException('User not found');
@@ -134,9 +130,44 @@ export class UserService {
     );
 
     if (isFavorited) {
-      return this.removeFavoriteActivity(userId, activityId);
+      await this.removeFavoriteActivity(userId, activityId);
     } else {
-      return this.addFavoriteActivity(userId, activityId);
+      await this.addFavoriteActivity(userId, activityId);
     }
+  }
+
+  async updateFavoriteActivitiesOrder(
+    userId: string,
+    activityIds: string[],
+  ): Promise<void> {
+    const user = await this.userModel.findById(userId).exec();
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Validate that all IDs belong to user's favorites
+    const favoriteIds =
+      user.favoriteActivities?.map((fav) => fav.toString()) || [];
+    const isValid =
+      activityIds.every((id) => favoriteIds.includes(id)) &&
+      activityIds.length === favoriteIds.length;
+
+    if (!isValid) {
+      throw new NotFoundException('Invalid activity IDs or order');
+    }
+
+    // Reorder the favoriteActivities array based on the provided order
+    // MongoDB will preserve this order
+    const reorderedActivities = activityIds
+      .map((id) =>
+        user.favoriteActivities?.find((fav) => fav.toString() === id),
+      )
+      .filter(
+        (activity): activity is NonNullable<typeof activity> =>
+          activity !== undefined,
+      );
+
+    user.favoriteActivities = reorderedActivities as any;
+    await user.save();
   }
 }
