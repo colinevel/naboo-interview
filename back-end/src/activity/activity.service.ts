@@ -4,6 +4,13 @@ import { Model } from 'mongoose';
 import { Activity } from './activity.schema';
 import { CreateActivityInput } from './activity.inputs.dto';
 
+/*
+General comment on the architecture, we fetch the data directly in the service instead of fetching data in a repository
+so we mix business logic and data access logic here.
+
+We could create a repository layer to separate business logic from data access logic to follow clean architecture principles and make the code more maintainable and testable.
+*/
+
 @Injectable()
 export class ActivityService {
   constructor(

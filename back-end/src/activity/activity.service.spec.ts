@@ -20,4 +20,8 @@ describe('ActivityService', () => {
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
+
+  /*
+  We should add tests for all the methods of the service
+  */
 });
