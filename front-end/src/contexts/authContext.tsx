@@ -25,6 +25,7 @@ interface AuthContextType {
   handleSignin: (input: SignInInput) => Promise<void>;
   handleSignup: (input: SignUpInput) => Promise<void>;
   handleLogout: () => Promise<void>;
+  refetchUser: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType>({
@@ -33,6 +34,7 @@ export const AuthContext = createContext<AuthContextType>({
   handleSignin: () => Promise.resolve(),
   handleSignup: () => Promise.resolve(),
   handleLogout: () => Promise.resolve(),
+  refetchUser: () => Promise.resolve(),
 });
 
 interface AuthProviderProps {
@@ -45,7 +47,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<GetUserQuery["getMe"] | null>(null);
   const router = useRouter();
 
-  const [getUser] = useLazyQuery<GetUserQuery, GetUserQueryVariables>(GetUser);
+  const [getUser] = useLazyQuery<GetUserQuery, GetUserQueryVariables>(GetUser, {
+    fetchPolicy: 'network-only', // Always fetch fresh data, bypass cache
+  });
   const [signin] = useMutation<SigninMutation, SigninMutationVariables>(Signin);
   const [signup] = useMutation<SignupMutation, SignupMutationVariables>(Signup);
   const [logout] = useMutation<LogoutMutation, LogoutMutationVariables>(Logout);
@@ -60,7 +64,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     } else {
       setIsLoading(false);
     }
-  }, [user]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]); // getUser is stable from useLazyQuery, no need to include it
 
   const handleSignin = async (input: SignInInput) => {
     try {
@@ -68,7 +73,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       const response = await signin({ variables: { signInInput: input } });
       const token = response.data?.login?.access_token || "";
       localStorage.setItem("token", token);
-      await getUser().then((res) => setUser(res.data?.getMe || null));
+      // Fetch fresh user data with role included
+      const userResponse = await getUser();
+      setUser(userResponse.data?.getMe || null);
       router.push("/profil");
     } catch (err) {
       snackbar.error("Une erreur est survenue");
@@ -103,9 +110,17 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
+  const refetchUser = async () => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      const userResponse = await getUser();
+      setUser(userResponse.data?.getMe || null);
+    }
+  };
+
   return (
     <AuthContext.Provider
-      value={{ user, isLoading, handleSignin, handleSignup, handleLogout }}
+      value={{ user, isLoading, handleSignin, handleSignup, handleLogout, refetchUser }}
     >
       {children}
     </AuthContext.Provider>

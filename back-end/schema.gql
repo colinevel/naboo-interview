@@ -63,4 +63,5 @@ type User {
   id: ID!
   lastName: String!
   password: String!
+  role: String!
 }
