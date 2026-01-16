@@ -51,23 +51,23 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [logout] = useMutation<LogoutMutation, LogoutMutationVariables>(Logout);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-
-    if (!user && token) {
+    // Try to get user on mount - cookie will be sent automatically if present
+    if (!user) {
       getUser()
         .then((res) => setUser(res.data?.getMe || null))
+        .catch(() => setUser(null))
         .finally(() => setIsLoading(false));
     } else {
       setIsLoading(false);
     }
-  }, [user]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run on mount - getUser function reference changes, so we ignore it
 
   const handleSignin = async (input: SignInInput) => {
     try {
       setIsLoading(true);
-      const response = await signin({ variables: { signInInput: input } });
-      const token = response.data?.login?.access_token || "";
-      localStorage.setItem("token", token);
+      await signin({ variables: { signInInput: input } });
+      // Cookie is set automatically by backend, no need to store in localStorage
       await getUser().then((res) => setUser(res.data?.getMe || null));
       router.push("/profil");
     } catch (err) {
@@ -92,11 +92,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const handleLogout = async () => {
     try {
       setIsLoading(true);
-      await logout();
-      localStorage.removeItem("token");
+      await logout(); // Backend clears the cookie automatically
       setUser(null);
       router.push("/");
     } catch (err) {
+      // Even if logout fails, clear user state
+      setUser(null);
       snackbar.error("Une erreur est survenue");
     } finally {
       setIsLoading(false);
