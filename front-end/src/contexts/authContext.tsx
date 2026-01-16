@@ -51,7 +51,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [logout] = useMutation<LogoutMutation, LogoutMutationVariables>(Logout);
 
   useEffect(() => {
-    // Try to get user on mount - cookie will be sent automatically if present
+    // we should remove storing the token in the local storage as it's not needed.
+    // Token in cookie will be sent automatically if present
     if (!user) {
       getUser()
         .then((res) => setUser(res.data?.getMe || null))
@@ -61,7 +62,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setIsLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Only run on mount - getUser function reference changes, so we ignore it
+  }, []); // Only run on mount
 
   const handleSignin = async (input: SignInInput) => {
     try {
