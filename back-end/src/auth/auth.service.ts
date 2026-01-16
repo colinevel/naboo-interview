@@ -1,8 +1,4 @@
-import {
-  HttpException,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { User } from 'src/user/user.schema';
@@ -18,11 +14,14 @@ export class AuthService {
   ) {}
 
   async signIn({ email, password }: SignInInput): Promise<SignInDto> {
-    const user = await this.userService.getByEmail(email);
+    const user = await this.userService.findByEmail(email);
+
+    // For security reasons, we throw the same error code and message with 401 unauthorized for both not found email and invalid password to avoid leaking information
+    if (!user) throw new UnauthorizedException('Invalid credentials');
+
     const isSamePassword = await bcrypt.compare(password, user.password);
 
-    if (!isSamePassword)
-      throw new HttpException('Wrong credentials provided', 400);
+    if (!isSamePassword) throw new UnauthorizedException('Invalid credentials');
 
     const token = await this.generateToken({ user });
 

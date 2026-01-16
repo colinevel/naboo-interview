@@ -16,7 +16,6 @@ import { UserService } from 'src/user/user.service';
 import { Activity } from './activity.schema';
 
 import { CreateActivityInput } from './activity.inputs.dto';
-import { User } from 'src/user/user.schema';
 import { ContextWithJWTPayload } from 'src/auth/types/context';
 
 @Resolver(() => Activity)
@@ -31,11 +30,13 @@ export class ActivityResolver {
     return activity._id.toString();
   }
 
-  @ResolveField(() => User)
-  async owner(@Parent() activity: Activity): Promise<User> {
-    await activity.populate('owner');
-    return activity.owner;
-  }
+  // NOTE: N +1 query here, we can populate owner in the service directly in order to have 2 queries total
+
+  // @ResolveField(() => User)
+  // async owner(@Parent() activity: Activity): Promise<User> {
+  //   await activity.populate('owner');
+  //   return activity.owner;
+  // }
 
   @Query(() => [Activity])
   async getActivities(): Promise<Activity[]> {

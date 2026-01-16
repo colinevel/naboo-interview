@@ -28,7 +28,7 @@ export class User extends Document {
   password!: string;
 
   @Prop()
-  token?: string;
+  token?: string; // Storing the JWT token is unnecessary as JWTs are stateless, we should not store it
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
