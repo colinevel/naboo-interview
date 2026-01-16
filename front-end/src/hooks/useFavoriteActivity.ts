@@ -8,7 +8,6 @@ import { ActivityFragment } from "@/graphql/generated/types";
 export function useFavoriteActivity(activityId: string) {
   const { user: authUser } = useAuth();
 
-  // Query user data to check favorite status
   const { data: userData } = useQuery<GetUserQuery, GetUserQueryVariables>(
     GetUser,
     {

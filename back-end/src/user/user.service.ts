@@ -87,12 +87,10 @@ export class UserService {
       throw new NotFoundException('User not found');
     }
 
-    // Check if activity is already favorited
     if (user.favoriteActivities?.some((fav) => fav.toString() === activityId)) {
       return;
     }
 
-    // Add activity to favorites
     user.favoriteActivities = [
       ...(user.favoriteActivities || []),
       activityId as any,
@@ -156,8 +154,6 @@ export class UserService {
       throw new NotFoundException('Invalid activity IDs or order');
     }
 
-    // Reorder the favoriteActivities array based on the provided order
-    // MongoDB will preserve this order
     const reorderedActivities = activityIds
       .map((id) =>
         user.favoriteActivities?.find((fav) => fav.toString() === id),
@@ -167,7 +163,7 @@ export class UserService {
           activity !== undefined,
       );
 
-    user.favoriteActivities = reorderedActivities as any;
+    user.favoriteActivities = reorderedActivities;
     await user.save();
   }
 }

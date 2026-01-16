@@ -28,7 +28,6 @@ export function DraggableActivity({ activity }: DraggableActivityProps) {
     <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
       <div
         onClick={(e) => {
-          // Stop drag if clicking on interactive elements
           const target = e.target as HTMLElement;
           if (
             target.closest("button") ||

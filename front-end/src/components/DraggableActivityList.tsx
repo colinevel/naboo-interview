@@ -68,7 +68,7 @@ export function DraggableActivityList({ activities }: DraggableActivityListProps
       // Optimistically update UI
       setItems(newItems);
 
-      // Save order to backend (MongoDB will preserve array order)
+      // Save order to backend
       try {
         await updateOrder({
           variables: { activityIds: newItems },
@@ -81,7 +81,6 @@ export function DraggableActivityList({ activities }: DraggableActivityListProps
     }
   };
 
-  // Sort activities based on the items order
   const sortedActivities = items.length
     ? items
         .map((id) => activities.find((activity) => activity.id === id))
