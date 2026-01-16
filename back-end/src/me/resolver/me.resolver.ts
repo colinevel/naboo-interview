@@ -1,4 +1,4 @@
-import { Context, Query, Resolver } from '@nestjs/graphql';
+import { Context, Query, Resolver, Mutation, Args, ID } from '@nestjs/graphql';
 import { UserService } from '../../user/user.service';
 import { UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../../auth/auth.guard';
@@ -15,5 +15,17 @@ export class MeResolver {
     // the AuthGard will add the user to the context
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     return this.userService.getById(context.jwtPayload.id);
+  }
+
+  @Mutation(() => User)
+  @UseGuards(AuthGuard)
+  async toggleFavoriteActivity(
+    @Context() context: ContextWithJWTPayload,
+    @Args('activityId', { type: () => ID }) activityId: string,
+  ): Promise<User> {
+    return this.userService.toggleFavoriteActivity(
+      context.jwtPayload.id,
+      activityId,
+    );
   }
 }

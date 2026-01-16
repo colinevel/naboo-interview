@@ -25,7 +25,10 @@ export class UserService {
   }
 
   async getById(id: string): Promise<User> {
-    const user = await this.userModel.findById(id).exec();
+    const user = await this.userModel
+      .findById(id)
+      .populate('favoriteActivities')
+      .exec();
     if (!user) {
       throw new NotFoundException('User not found');
     }
@@ -73,5 +76,67 @@ export class UserService {
       throw new NotFoundException('User not found');
     }
     return user;
+  }
+
+  private async addFavoriteActivity(
+    userId: string,
+    activityId: string,
+  ): Promise<User> {
+    const user = await this.userModel.findById(userId).exec();
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Check if activity is already favorited
+    if (user.favoriteActivities?.some((fav) => fav.toString() === activityId)) {
+      return user;
+    }
+
+    // Add activity to favorites
+    user.favoriteActivities = [
+      ...(user.favoriteActivities || []),
+      activityId as any,
+    ];
+    await user.save();
+
+    return this.getById(userId);
+  }
+
+  private async removeFavoriteActivity(
+    userId: string,
+    activityId: string,
+  ): Promise<User> {
+    const user = await this.userModel.findById(userId).exec();
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Remove activity from favorites
+    user.favoriteActivities =
+      user.favoriteActivities?.filter((fav) => fav.toString() !== activityId) ||
+      [];
+    await user.save();
+
+    return this.getById(userId);
+  }
+
+  async toggleFavoriteActivity(
+    userId: string,
+    activityId: string,
+  ): Promise<User> {
+    const user = await this.userModel.findById(userId).exec();
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const isFavorited = user.favoriteActivities?.some(
+      (fav) => fav.toString() === activityId,
+    );
+
+    if (isFavorited) {
+      return this.removeFavoriteActivity(userId, activityId);
+    } else {
+      return this.addFavoriteActivity(userId, activityId);
+    }
   }
 }
