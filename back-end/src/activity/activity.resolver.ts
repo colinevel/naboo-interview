@@ -30,7 +30,7 @@ export class ActivityResolver {
     return activity._id.toString();
   }
 
-  // NOTE: N +1 query here, we can populate owner in the service directly in order to have 2 queries total
+  // NOTE: N +1 query here, we can populate owner in the service directly in order to avoid n+1 query and have 2 queries total
 
   // @ResolveField(() => User)
   // async owner(@Parent() activity: Activity): Promise<User> {
@@ -38,6 +38,9 @@ export class ActivityResolver {
   //   return activity.owner;
   // }
 
+  /* We could use a single query to get all activities with filters as arguments
+   to get only the latest activities in order to avoid duplication and redundancy.
+   */
   @Query(() => [Activity])
   async getActivities(): Promise<Activity[]> {
     return this.activityService.findAll();
