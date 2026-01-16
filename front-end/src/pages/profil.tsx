@@ -1,20 +1,25 @@
-import { PageTitle } from "@/components";
-import { graphqlClient } from "@/graphql/apollo";
+import { Activity, EmptyData, PageTitle } from "@/components";
 import { withAuth } from "@/hocs";
 import { useAuth } from "@/hooks";
-import { Avatar, Flex, Text } from "@mantine/core";
-import { GetServerSideProps } from "next";
+import { GetUserQuery, GetUserQueryVariables } from "@/graphql/generated/types";
+import GetUser from "@/graphql/queries/auth/getUser";
+import { useQuery } from "@apollo/client";
+import { Avatar, Flex, Grid, Text, Title } from "@mantine/core";
 import Head from "next/head";
 
-interface ProfileProps {
-  favoriteActivities: {
-    id: string;
-    name: string;
-  }[];
-}
+const Profile = () => {
+  const { user: authUser } = useAuth();
 
-const Profile = (props: ProfileProps) => {
-  const { user } = useAuth();
+  const { data: userData } = useQuery<GetUserQuery, GetUserQueryVariables>(
+    GetUser,
+    {
+      skip: !authUser,
+      fetchPolicy: "cache-and-network",
+    }
+  );
+
+  const user = userData?.getMe;
+  const favoriteActivities = user?.favoriteActivities || [];
 
   return (
     <>
@@ -22,7 +27,7 @@ const Profile = (props: ProfileProps) => {
         <title>Mon profil | CDTR</title>
       </Head>
       <PageTitle title="Mon profil" />
-      <Flex align="center" gap="md">
+      <Flex align="center" gap="md" mb="xl">
         <Avatar color="cyan" radius="xl" size="lg">
           {user?.firstName[0]}
           {user?.lastName[0]}
@@ -33,6 +38,16 @@ const Profile = (props: ProfileProps) => {
           <Text>{user?.lastName}</Text>
         </Flex>
       </Flex>
+      <Title order={3} mb="md">Mes activités favorites</Title>
+      {favoriteActivities.length > 0 ? (
+        <Grid>
+          {favoriteActivities.map((activity) => (
+            <Activity activity={activity} key={activity.id} />
+          ))}
+        </Grid>
+      ) : (
+        <EmptyData />
+      )}
     </>
   );
 };

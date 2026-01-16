@@ -1,7 +1,9 @@
 import { ActivityFragment } from "@/graphql/generated/types";
 import { useGlobalStyles } from "@/utils";
-import { Badge, Button, Card, Grid, Group, Image, Text } from "@mantine/core";
+import { ActionIcon, Badge, Button, Card, Grid, Group, Image, Text } from "@mantine/core";
+import { IconHeart, IconHeartFilled } from "@tabler/icons-react";
 import Link from "next/link";
+import { useFavoriteActivity } from "@/hooks";
 
 interface ActivityProps {
   activity: ActivityFragment;
@@ -9,6 +11,8 @@ interface ActivityProps {
 
 export function Activity({ activity }: ActivityProps) {
   const { classes } = useGlobalStyles();
+  const { isFavorite, isLoading, isAuthenticated, handleToggleFavorite } =
+    useFavoriteActivity(activity.id);
 
   return (
     <Grid.Col span={4}>
@@ -25,6 +29,19 @@ export function Activity({ activity }: ActivityProps) {
           <Text weight={500} className={classes.ellipsis}>
             {activity.name}
           </Text>
+          <ActionIcon
+            variant="subtle"
+            color={isFavorite ? "red" : "gray"}
+            onClick={handleToggleFavorite}
+            disabled={isLoading || !isAuthenticated}
+            loading={isLoading}
+          >
+            {isFavorite ? (
+              <IconHeartFilled size={20} />
+            ) : (
+              <IconHeart size={20} />
+            )}
+          </ActionIcon>
         </Group>
 
         <Group mt="md" mb="xs">

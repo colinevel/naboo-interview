@@ -1,4 +1,5 @@
 import gql from "graphql-tag";
+import ActivityFragment from "@/graphql/fragments/activity";
 
 const GetUser = gql`
   query GetUser {
@@ -7,8 +8,12 @@ const GetUser = gql`
       firstName
       lastName
       email
+      favoriteActivities {
+        ...Activity
+      }
     }
   }
+  ${ActivityFragment}
 `;
 
 export default GetUser;

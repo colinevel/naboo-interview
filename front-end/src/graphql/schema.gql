@@ -29,6 +29,7 @@ type Mutation {
   login(signInInput: SignInInput!): SignInDto!
   logout: Boolean!
   register(signUpInput: SignUpInput!): User!
+  toggleFavoriteActivity(activityId: ID!): User!
 }
 
 type Query {
@@ -59,6 +60,7 @@ input SignUpInput {
 
 type User {
   email: String!
+  favoriteActivities: [Activity!]
   firstName: String!
   id: ID!
   lastName: String!
