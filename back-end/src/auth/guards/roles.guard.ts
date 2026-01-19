@@ -18,18 +18,17 @@ export class RolesGuard implements CanActivate {
       context.getHandler(),
     );
 
-    // If no roles are required, allow access
     if (!requiredRoles) return true;
 
     const gqlContext = GqlExecutionContext.create(context);
     const ctx = gqlContext.getContext();
 
-    // Must be authenticated (AuthGuard should run first)
     if (!ctx.jwtPayload) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException(
+        'Authentication required. Please provide a valid JWT token.',
+      );
     }
 
-    // Check if user's role is in the required roles
     if (!requiredRoles.includes(ctx.jwtPayload.role)) {
       throw new ForbiddenException(
         'You do not have permission to access this resource',
