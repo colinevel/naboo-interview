@@ -17,29 +17,27 @@ export class MeResolver {
     return this.userService.getById(context.jwtPayload.id);
   }
 
-  @Mutation(() => Boolean)
+  @Mutation(() => User)
   @UseGuards(AuthGuard)
   async toggleFavoriteActivity(
     @Context() context: ContextWithJWTPayload,
     @Args('activityId', { type: () => ID }) activityId: string,
-  ): Promise<boolean> {
-    await this.userService.toggleFavoriteActivity(
+  ): Promise<User> {
+    return this.userService.toggleFavoriteActivity(
       context.jwtPayload.id,
       activityId,
     );
-    return true;
   }
 
-  @Mutation(() => Boolean)
+  @Mutation(() => User)
   @UseGuards(AuthGuard)
   async updateFavoriteActivitiesOrder(
     @Context() context: ContextWithJWTPayload,
     @Args('activityIds', { type: () => [ID] }) activityIds: string[],
-  ): Promise<boolean> {
-    await this.userService.updateFavoriteActivitiesOrder(
+  ): Promise<User> {
+    return this.userService.updateFavoriteActivitiesOrder(
       context.jwtPayload.id,
       activityIds,
     );
-    return true;
   }
 }

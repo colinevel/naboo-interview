@@ -21,8 +21,16 @@ export function useFavoriteActivity(activityId: string) {
     user?.favoriteActivities?.some((fav) => fav?.id === activityId) ?? false;
 
   const [toggleFavorite, { loading }] = useMutation(ToggleFavoriteActivity, {
-    refetchQueries: [{ query: GetUser }],
-    awaitRefetchQueries: true,
+    update: (cache, { data }) => {
+      if (data?.toggleFavoriteActivity) {
+        cache.writeQuery<GetUserQuery>({
+          query: GetUser,
+          data: {
+            getMe: data.toggleFavoriteActivity,
+          },
+        });
+      }
+    },
   });
 
   const handleToggleFavorite = async (e: React.MouseEvent) => {

@@ -1,4 +1,4 @@
-import { ActivityFragment } from "@/graphql/generated/types";
+import { ActivityFragment, GetUserQuery } from "@/graphql/generated/types";
 import { DraggableActivity, EmptyData } from "@/components";
 import { useMutation } from "@apollo/client";
 import UpdateFavoriteActivitiesOrder from "@/graphql/mutations/user/updateFavoriteActivitiesOrder";
@@ -52,7 +52,16 @@ export function DraggableActivityList({ activities }: DraggableActivityListProps
   );
 
   const [updateOrder] = useMutation(UpdateFavoriteActivitiesOrder, {
-    refetchQueries: [{ query: GetUser }],
+    update: (cache, { data }) => {
+      if (data?.updateFavoriteActivitiesOrder) {
+        cache.writeQuery<GetUserQuery>({
+          query: GetUser,
+          data: {
+            getMe: data.updateFavoriteActivitiesOrder,
+          },
+        });
+      }
+    },
   });
 
   const handleDragEnd = async (event: DragEndEvent) => {

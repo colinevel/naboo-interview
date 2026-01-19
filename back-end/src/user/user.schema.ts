@@ -31,12 +31,12 @@ export class User extends Document {
   @Prop()
   token?: string;
 
-  @Field(() => [Activity], { nullable: true })
+  @Field(() => [Activity])
   @Prop({
     type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Activity' }],
     default: [],
   })
-  favoriteActivities?: Activity[];
+  favoriteActivities!: Activity[];
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

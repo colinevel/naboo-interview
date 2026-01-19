@@ -1,8 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { SignUpInput } from 'src/auth/types';
 import { User } from './user.schema';
+import { Activity } from '../activity/activity.schema';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -10,6 +11,8 @@ export class UserService {
   constructor(
     @InjectModel(User.name)
     private userModel: Model<User>,
+    @InjectModel(Activity.name)
+    private activityModel: Model<Activity>,
   ) {}
 
   async getByEmail(email: string): Promise<User> {
@@ -87,7 +90,16 @@ export class UserService {
       throw new NotFoundException('User not found');
     }
 
-    if (user.favoriteActivities?.some((fav) => fav.toString() === activityId)) {
+    const activity = await this.activityModel.findById(activityId).exec();
+    if (!activity) {
+      throw new NotFoundException('Activity not found');
+    }
+
+    const userFavoriteIds =
+      user.favoriteActivities?.map((fav) => fav.toString()) || [];
+
+    // Check if activityId is already in favorites
+    if (userFavoriteIds.includes(activityId)) {
       return;
     }
 
@@ -95,6 +107,7 @@ export class UserService {
       ...(user.favoriteActivities || []),
       activityId as any,
     ];
+
     await user.save();
   }
 
@@ -107,7 +120,6 @@ export class UserService {
       throw new NotFoundException('User not found');
     }
 
-    // Remove activity from favorites
     user.favoriteActivities =
       user.favoriteActivities?.filter((fav) => fav.toString() !== activityId) ||
       [];
@@ -117,7 +129,7 @@ export class UserService {
   async toggleFavoriteActivity(
     userId: string,
     activityId: string,
-  ): Promise<void> {
+  ): Promise<User> {
     const user = await this.userModel.findById(userId).exec();
     if (!user) {
       throw new NotFoundException('User not found');
@@ -132,38 +144,37 @@ export class UserService {
     } else {
       await this.addFavoriteActivity(userId, activityId);
     }
+
+    return this.getById(userId);
   }
 
   async updateFavoriteActivitiesOrder(
     userId: string,
     activityIds: string[],
-  ): Promise<void> {
+  ): Promise<User> {
     const user = await this.userModel.findById(userId).exec();
     if (!user) {
       throw new NotFoundException('User not found');
     }
 
-    // Validate that all IDs belong to user's favorites
     const favoriteIds =
       user.favoriteActivities?.map((fav) => fav.toString()) || [];
-    const isValid =
+
+    // check to only reorder the same fav activities array
+    const isSameFavActivitiesArray =
       activityIds.every((id) => favoriteIds.includes(id)) &&
       activityIds.length === favoriteIds.length;
 
-    if (!isValid) {
-      throw new NotFoundException('Invalid activity IDs or order');
+    if (!isSameFavActivitiesArray) {
+      throw new NotFoundException('Invalid activities array');
     }
 
-    const reorderedActivities = activityIds
-      .map((id) =>
-        user.favoriteActivities?.find((fav) => fav.toString() === id),
-      )
-      .filter(
-        (activity): activity is NonNullable<typeof activity> =>
-          activity !== undefined,
-      );
+    user.favoriteActivities = activityIds.map(
+      (id) => new Types.ObjectId(id),
+    ) as any;
 
-    user.favoriteActivities = reorderedActivities;
     await user.save();
+
+    return this.getById(userId);
   }
 }
