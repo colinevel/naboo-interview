@@ -1,18 +1,22 @@
 import { ActivityFragment } from "@/graphql/generated/types";
 import { useGlobalStyles } from "@/utils";
-import { Badge, Button, Card, Grid, Group, Image, Text } from "@mantine/core";
+import { ActionIcon, Badge, Button, Card, Grid, Group, Image, Text } from "@mantine/core";
+import { IconHeart, IconHeartFilled } from "@tabler/icons-react";
 import Link from "next/link";
+import { useFavoriteActivity } from "@/hooks";
 
 interface ActivityProps {
   activity: ActivityFragment;
+  withGridCol?: boolean;
 }
 
-export function Activity({ activity }: ActivityProps) {
+export function Activity({ activity, withGridCol = true }: ActivityProps) {
   const { classes } = useGlobalStyles();
+  const { isFavorite, isLoading, isAuthenticated, handleToggleFavorite } =
+    useFavoriteActivity(activity.id);
 
-  return (
-    <Grid.Col span={4}>
-      <Card shadow="sm" padding="lg" radius="md" withBorder>
+  const cardContent = (
+    <Card shadow="sm" padding="lg" radius="md" withBorder>
         <Card.Section>
           <Image
             src="https://dummyimage.com/480x4:3"
@@ -25,6 +29,22 @@ export function Activity({ activity }: ActivityProps) {
           <Text weight={500} className={classes.ellipsis}>
             {activity.name}
           </Text>
+          <ActionIcon
+            variant="subtle"
+            color={isFavorite ? "red" : "gray"}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleToggleFavorite(e);
+            }}
+            disabled={isLoading || !isAuthenticated}
+            loading={isLoading}
+          >
+            {isFavorite ? (
+              <IconHeartFilled size={20} />
+            ) : (
+              <IconHeart size={20} />
+            )}
+          </ActionIcon>
         </Group>
 
         <Group mt="md" mb="xs">
@@ -46,6 +66,15 @@ export function Activity({ activity }: ActivityProps) {
           </Button>
         </Link>
       </Card>
-    </Grid.Col>
   );
+
+  if (withGridCol) {
+    return (
+      <Grid.Col span={4}>
+        {cardContent}
+      </Grid.Col>
+    );
+  }
+
+  return cardContent;
 }

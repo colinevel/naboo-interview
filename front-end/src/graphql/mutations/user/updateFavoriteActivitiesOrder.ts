@@ -1,9 +1,9 @@
 import gql from "graphql-tag";
 import ActivityFragment from "@/graphql/fragments/activity";
 
-const GetUser = gql`
-  query GetUser {
-    getMe {
+const UpdateFavoriteActivitiesOrder = gql`
+  mutation UpdateFavoriteActivitiesOrder($activityIds: [ID!]!) {
+    updateFavoriteActivitiesOrder(activityIds: $activityIds) {
       id
       firstName
       lastName
@@ -16,4 +16,4 @@ const GetUser = gql`
   ${ActivityFragment}
 `;
 
-export default GetUser;
+export default UpdateFavoriteActivitiesOrder;
