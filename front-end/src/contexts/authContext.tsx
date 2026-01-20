@@ -51,7 +51,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [logout] = useMutation<LogoutMutation, LogoutMutationVariables>(Logout);
 
   useEffect(() => {
-    // we should remove storing the token in the local storage as it's not needed.
+    // we should remove storing the token in the local storage as it's not needed and it's not secure (XSS attacks)
     // Token in cookie will be sent automatically if present
     if (!user) {
       getUser()
