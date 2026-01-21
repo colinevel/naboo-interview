@@ -4,6 +4,13 @@ import { Model } from 'mongoose';
 import { Activity } from './activity.schema';
 import { CreateActivityInput } from './activity.inputs.dto';
 
+/*
+General comment on the architecture, we fetch the data directly in the service instead of fetching data in a repository
+so we mix business logic and data access logic here.
+
+We could create a repository layer to separate business logic from data access logic to follow clean architecture principles and make the code more maintainable and testable.
+*/
+
 @Injectable()
 export class ActivityService {
   constructor(
@@ -12,28 +19,44 @@ export class ActivityService {
   ) {}
 
   async findAll(): Promise<Activity[]> {
-    return this.activityModel.find().sort({ createdAt: -1 }).exec();
+    return this.activityModel
+      .find()
+      .populate('owner')
+      .sort({ createdAt: -1 })
+      .exec();
   }
 
   async findLatest(): Promise<Activity[]> {
-    return this.activityModel.find().sort({ createdAt: -1 }).limit(3).exec();
+    return this.activityModel
+      .find()
+      .populate('owner')
+      .sort({ createdAt: -1 })
+      .limit(3)
+      .exec();
   }
 
   async findByUser(userId: string): Promise<Activity[]> {
     return this.activityModel
       .find({ owner: userId })
+      .populate('owner')
       .sort({ createdAt: -1 })
       .exec();
   }
 
   async findOne(id: string): Promise<Activity> {
-    const activity = await this.activityModel.findById(id).exec();
+    const activity = await this.activityModel
+      .findById(id)
+      .populate('owner')
+      .exec();
     if (!activity) throw new NotFoundException();
     return activity;
   }
 
   async findByIds(ids: string[]): Promise<Activity[]> {
-    return this.activityModel.find({ _id: { $in: ids } }).exec();
+    return this.activityModel
+      .find({ _id: { $in: ids } })
+      .populate('owner')
+      .exec();
   }
 
   async create(userId: string, data: CreateActivityInput): Promise<Activity> {
@@ -41,6 +64,7 @@ export class ActivityService {
       ...data,
       owner: userId,
     });
+    await activity.populate('owner');
     return activity;
   }
 
@@ -61,6 +85,7 @@ export class ActivityService {
           ...(activity ? [{ name: { $regex: activity, $options: 'i' } }] : []),
         ],
       })
+      .populate('owner')
       .exec();
   }
 

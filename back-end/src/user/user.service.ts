@@ -42,6 +42,7 @@ export class UserService {
     return user.save();
   }
 
+  // this method is not needed if we don't store the JWT token in the database
   async updateToken(id: string, token: string): Promise<User> {
     const user = await this.userModel.findById(id).exec();
     if (!user) {
@@ -55,6 +56,7 @@ export class UserService {
     return this.userModel.countDocuments().exec();
   }
 
+  // this method isn't used in the project, deadcode? we should remove it if not used
   async setDebugMode({
     userId,
     enabled,

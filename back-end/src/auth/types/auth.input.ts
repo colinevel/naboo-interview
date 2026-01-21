@@ -9,6 +9,7 @@ export class SignInInput {
 
   @Field()
   @IsNotEmpty()
+  // there should be stricter input validation for password for example min length 8 characters
   password!: string;
 }
 @InputType()
